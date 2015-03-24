@@ -34,3 +34,53 @@
 ;def的作用是在当前命名空间里定义（或重定义）一个var（你可以同时给它赋一个值，也可以不赋值）
 (def p "foo")
 p
+
+;本地绑定：let
+(defn hypot
+  [x y]
+  (let [x2 (* x x)
+        y2 (* y y)]
+    (Math/sqrt (+ x2 y2))))
+;在任何需要本地绑定的地方都间接地使用了let。比如fn使用let来绑定函数参数作为函数体内的本地绑定
+;我们会在let的绑定数组里面对一个表达式求值，但是我们对于表达式的值并不关系，也不会去使用这个值。 在这种情况下，通常使用_来指定这个绑定的名字
+
+;解构
+;定义一个vector
+(def v [42 "foo" 99.2 [5 12]])
+(first v)                                                   ;42
+(second v)                                                  ;"foo"
+(last v)                                                    ;[5 12]
+(nth v 2)                                                   ;99.2
+(v 2)                                                       ;99.2
+(.get v 2)                                                  ;99.2
+
+;顺序解构
+;顺序解构可以对任何顺序集合近线解构
+;Clojure原生的list、vector以及seq
+;任何实现了java.util.List接口的集合（比如ArrayList和LinkedList）
+;java数组
+;字符串，对它解构的结果是一个个字符
+
+(def v [42 "foo" 99.2 [5 12]])
+(let [[x y z] v]
+  (+ x z))                                                  ;141.2
+
+(let [x (nth v 0)
+      y (nth v 1)
+      z (nth v 2)]
+  (+ x z))                                                  ;142.2
+;解构的形式还支持嵌套的解构形式
+(let [[x _ _ [y z]] v]
+  (+ x y z))                                                ;59
+;保持剩下的元素
+;可以使用&符号来保持解构剩下的那些元素
+(let [[x & rest] v]
+  rest)                                                     ;("foo" 99.2 [5 12])
+;rest是一个序列，而不是vector，虽然被解构的参数v是一个vector
+
+;保持被解构的值
+;可以在解构形式中指定:as选项来把被解构的原始集合绑定到一个本地绑定
+(let [[x _ z :as original-vector] v]
+  (conj original-vector (+ x z)))                           ;[42 "foo" 99.2 [5 12] 141.2]
+;这里的original-vector被绑定到未做修改的集合v
+
