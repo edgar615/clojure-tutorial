@@ -147,4 +147,86 @@ p
 (def christophe {'name "Christophe" 'age 33 'location "Rhone"})
 (let [{:syms [name age location]} christophe]
   (format "%s is %s years old and lives in %s" name age location)) ;"Christophe is 33 years old and lives in Rhone"
+;对顺序集合的“剩余”部分使用map解构
+(def user-info ["robert8990" 2011 :name "Bob" :city "Boston"])
+(let [[username account-year & exra-info] user-info
+      {:keys [name city]} (apply hash-map exra-info)]
+  (format "%s is in %s" name city))                         ;"Bob is in Boston"
+;Clojure可以直接使用map解构来解构集合的剩余部分——如果沈阳部分的元素格式是偶数的话，顺序解构会把剩余的部分当做一个map来处理
+(let [[username account-year & {:keys [name city]}] user-info]
+  (format "%s is in %s" name city))                         ;"Bob is in Boston"
 
+;定义函数：fn
+(fn [x]
+  (+ x 10))
+;函数定义时的参数与调用函数时实际传递的参数之间的对应是通过参数位置来完成的：
+((fn [x]
+   (+ x 10)) 8)                                             ;18
+;也可以定义接受多个参数的函数
+((fn [x y z] (+ x y z)) 3 4 12)                             ;19
+;函数还可以又多个参数列表
+(def strange-adder (fn adder-self-refrence
+                     ([x] (adder-self-refrence x 1))
+                     ([x y] (+ x y))))
+(strange-adder 10)                                          ;11
+(strange-adder 10 50)                                       ;60
+;defn
+(defn strange-adder
+  ([x] (strange-adder x 1))
+  ([x y] (+ x y)))
+(def redundant-adder (fn redundant-adder
+                       [x y z]
+                       (+ x y z)))
+;等价于
+(defn redundant-adder [x y z]
+  (+ x y z))
+;解构函数参数
+;可变参函数
+(defn concat-rest
+  [x & rest]
+  (apply str (butlast rest)))
+(concat-rest 0 1 2 3 4)                                     ;123
+;“剩余参数”列表可以像其他序列一样进行解构
+(defn make-user
+  [& [user-id]]
+  {:user-id (or user-id
+                (str (java.util.UUID/randomUUID)))})
+(make-user)                                                 ;{:user-id "b4ad6a0e-36e2-4e1b-91c4-b7a822964073"}
+(make-user "Edgar")                                         ;{:user-id "Edgar"}
+;关键字参数,关键字参数是构建在let对于剩余参数的map解构的基础上的。
+;定义一个接受很多参数的函数时通常又一些参数不是必选的，有一些参数可能又默认值，而且有时候魏蔓希望函数的使用者不必按照某个特定的顺序来传参
+(defn make-user2
+  [username & {:keys [email join-date] :or {join-date (java.util.Date.)}}]
+  {:username username
+   :join-date join-date
+   :email email})
+(make-user2 "Bobby")                                        ;{:username "Bobby", :join-date #inst "2015-03-26T13:52:50.037-00:00", :email nil}
+(make-user2 "Bobby"
+            :join-date (java.util.Date.)
+            :email "edgar615@gmail.com")                    ;{:username "Bobby", :join-date #inst "2015-03-26T13:52:58.720-00:00", :email "edgar615@gmail.com"}
+;前置条件和后置条件
+;函数字面量，匿名函数
+(fn [x y] (Math/pow x y))
+#(Math/pow %1 %2)
+(read-string "#(Math/pow %1 %2)")                           ;(fn* [p1__828# p2__829#] (Math/pow p1__828# p2__829#))
+;函数字面量没有隐式地使用do
+;普通的fn（以及由它引申出来的所有变种）把它的函数体放在一个隐式的do里面，因此我们可以定义下面的函数：
+(fn [x y]
+  (println (str x \^ y))
+  (Math/pow x y))
+;如果使用函数字面量，需要显示地使用一个do形式
+#(do (println (str %1 \^ %2))
+     (Math/pow %1 %2))
+;因为很多函数字面量都只接受一个参数，所以可以简单地使用%来引用它的第一个函数，
+#(Math/pow % %2)
+;等价于
+#(Math/pow %1 %2)
+;可以定义不定参数的函数，并且通过%&来引用那些剩余函数
+(fn [x & rest]
+  (- x (apply + rest)))
+;等价于
+#(- % (apply + %&))
+;注意fn可以嵌套使用，但是函数字面量不能嵌套使用
+
+;条件判断if
+;Clojure的条件判断把任何非nil或非false的值都判断卫true
