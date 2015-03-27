@@ -229,4 +229,62 @@ p
 ;注意fn可以嵌套使用，但是函数字面量不能嵌套使用
 
 ;条件判断if
-;Clojure的条件判断把任何非nil或非false的值都判断卫true
+;如果if的第一个表达式的值是逻辑true的话，那么整个if的值就是第二个表达式的值
+;Clojure的条件判断把任何非nil或非false的值都判断为true
+(if "hi" \t)                                                ;\t
+(if 42 \t)                                                  ;\t
+(if nil "unevaluated" \t)                                   ;\t
+(if false "unevaluated" \t)                                 ;\t
+(if (not true) \t)                                          ;nil
+
+;true?、false?检查所给的参数是不是布尔值true和false，而不是逻辑上的true和false
+
+;循环：loop和recur
+;Clojure提供了好几个有用的循环函数，包括doseq和dotimes，它们抖森构建在recur的基础之上
+;recur能够在不消耗堆栈空间的情况下把程序执行转到离本地上下文最近的loop头那里去，这个loop头可以是loop定义的，也可以是一个函数定义的。
+(loop [x 5]
+  (if (neg? x)
+    x
+    (recur (dec x))))                                       ;-1
+;函数也可以建立loop头，如果是函数建立loop头的话，那么recur所带的值则会绑定到函数的参数上面去
+(defn countdown
+  [x]
+  (if (zero? x)
+    :blastoff!
+    (do (println x)
+        (recur (dec x)))))
+(countdown 5)
+
+;引用var：var
+;命名一个var的符号求值成var所对应的值
+(def x 5)
+x                                                           ;5
+;如果你想获得指向var本身的引用，而不是var的值，var这个特殊形式就是用来做这个的
+(var x)                                                     ;#'user/x
+
+;和java的互操作：.和new
+;对象初始化
+(java.util.ArrayList. 100)
+;调用静态函数
+(Math/pow 2 10)
+;调用实例方法
+(.substring "hello" 1 3)
+;访问静态程爷变量
+Integer/MAX_VALUE
+;访问实例成员变量
+;(.someField someObject)
+
+;异常处理：try、throw
+
+;状态修改：set!
+;虽然Clojure强调使用不可变的数据结构和值，但是还是有一些场景中我们需要对一个状态进行改变
+;最常见的情况是调用一个java对象的set方法或者任意一个改变对象状态的方法，而对于剩下的那些场景，Clojure提供了函数：set!,它可以
+;1.设置那些没有根绑定的线程本地值
+;2.设置一个java的字段
+;3.设置由deftype定义的对象的可修改字段
+
+;锁的原语：monitor-enter和monitor-exit
+;这两个是Clojure提供的锁原语，用来同步每个java对象上都有的monitor
+;通常，不应该直接使用这两个原语，因为Clojure提供了一个宏：locking，它能够保证进行更合适的锁获取和锁释放
+
+
