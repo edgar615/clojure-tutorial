@@ -227,6 +227,28 @@ p
 ;等价于
 #(- % (apply + %&))
 ;注意fn可以嵌套使用，但是函数字面量不能嵌套使用
+;defn的语法
+;(defn function-name doc-string? attr-map? [parameter-list]
+;  conditions-map?
+;  (expressions))
+;增加文档：doc-string?
+(defn total-cost
+  "return line-item total of the item and quantity provided"
+  [item-cost number-of-items]
+  (* item-cost number-of-items))
+(doc total-cost)
+;conditions-map
+;:pre 运行前检查
+;:post 运行后检查
+(defn item-total [price quantity]
+  {:pre [(> price 0) (> quantity 0)]
+   :post [(> % 0)]}
+  (* price quantity))
+(item-total 20 1)                                           ;;20
+(item-total 20 0)                                           ;;AssertionError Assert failed: (> quantity 0)
+(item-total 0 1)                                            ;;AssertionError Assert failed: (> price 0)
+;%用来表示函数的返回值
+
 
 ;条件判断if
 ;如果if的第一个表达式的值是逻辑true的话，那么整个if的值就是第二个表达式的值
@@ -275,6 +297,7 @@ Integer/MAX_VALUE
 ;(.someField someObject)
 
 ;异常处理：try、throw
+;语法 (try expr* catch-clause* finally-clause?)
 
 ;状态修改：set!
 ;虽然Clojure强调使用不可变的数据结构和值，但是还是有一些场景中我们需要对一个状态进行改变

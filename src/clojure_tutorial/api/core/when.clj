@@ -14,3 +14,5 @@
 (when "test" (println "Hello world") "Return value")
 ;;Hello world
 ;;"Return value"
+
+(when false (println "Hello world") "Return value")         ;;nil
