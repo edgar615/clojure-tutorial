@@ -23,3 +23,6 @@
 (def substract-from-hundred (partial - 100))
 (substract-from-hundred 10)                                  ;;90
 (substract-from-hundred 10 20)                                ;;70
+
+(def only-strings (partial filter string?))
+(only-strings ["a" 5 "b" 6])                                ;;("a" "b")
