@@ -23,3 +23,13 @@ WHERE id = :id
 
 -- name: create-fruit<!
 INSERT INTO fruit ( name ) VALUES ( :name )
+
+-- name: fruit-cost
+SELECT *
+FROM fruit
+WHERE (
+  name = ?
+  OR
+  name = ?
+)
+AND cost > :min_cost

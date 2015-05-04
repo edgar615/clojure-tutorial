@@ -8,4 +8,4 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [mysql/mysql-connector-java "5.1.35"]
                  [com.mchange/c3p0 "0.9.2.1"]
-                 [yesql "0.4.0"]])
+                 [yesql "0.5.0-rc2"]])
