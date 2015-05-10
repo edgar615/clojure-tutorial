@@ -8,3 +8,5 @@
 (hash-map :a 1 :a 2)                                        ;{:a 2}
 {}                                                          ;{}
 {:a 1 :a 2}                                                 ;IllegalArgumentException Duplicate key: :a
+
+(apply hash-map [:a 1 :b 2])                                ;;{:b 2, :a 1}
