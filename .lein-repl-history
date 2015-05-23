@@ -1,0 +1,136 @@
+(require '[clojure.java.jdbc :as j])
+;Setting Up A Data Source
+(def mysql-db {:classname   "com.mysql.jdbc.Driver"
+               :subprotocol "mysql"
+               :subname     "//10.4.7.15:3306/clojure_test"
+               :user        "root"
+               :password    "csst"})
+(j/insert! mysql-db :fruit
+           {:name "Apple" :appearance "rosy" :cost 24}
+           {:name "Orange" :appearance "round" :cost 49})
+(def d (dalay (println "Running...")))
+(def d (delay (println "Running...")))
+(defref d)
+(deref d)
+(def my-delay (delay (println "did some work") 100))
+(realized? my-delay)
+@my-delay
+(realized? my-delay)
+@my-delay
+@d
+(def d (delay (println "Running...") :done!))
+(deref d)
+@d
+(defn get-document
+  [id]
+  {:url "http://www.baidu.com"
+   :title "百度一下，你就知道"
+   :mime "text/html"
+   :content (delay (slurp "http://www.baidu.com"))})
+(def d (get-document "some-id"))
+d
+(realized? (:content d))
+@(:content d)
+(realized? (:content d))
+(def long-calculation (future (apply + (range 1e8))))
+@long-calculation
+@(future (Thread/sleep 5000) :done)
+exit
+(deref (future (Thread/sleep 5000) :done!)
+       1000
+       :impatitent!)
+(defn get-document
+  [id]
+  {:url "http://www.baidu.com"
+   :title "百度一下，你就知道"
+   :mime "text/html"
+   :content (future (slurp "http://www.baidu.com"))})
+(def d (get-document "some-id"))
+d
+(def f (future (Thread/sleep 10000) (println "done") 100))
+@f
+(def f (future (inc 1)))
+(future? f) 
+(future? 9) 
+(def v (delay (println "starting...")
+              (Thread/sleep 5000)
+              10))
+(delay? v)
+@v
+(def p (promise))
+(realized? p)
+(deliver p 42)
+(realized? p)
+@p
+(def a (promise))
+(def b (promise))
+(def c (promise))
+(future
+  (deliver c (+ @a @b))
+  (println "Delivery complete"))
+(realized? c)
+(deliver a 10)
+(realized? c)
+(deliver b 10)
+(realized? c)
+@c
+(def p2 (promise))
+(deref p2 3000 :ignore)
+(slurp "project.cli")~
+(slurp "project.cli")
+(slurp "slurp.cli")
+(slurp ~/dev/lein)
+(slurp "~/dev/lein")
+(slurp "dev/lein")
+(slurp "/home/edgar/dev/lein")
+(slurp "http://www.baidu.com")
+(slurp "http://www.baidu.com" :encoding "UTF-8")
+(re-seq #"\d" "clojure.1.6.0")
+(req-seq #"\w+" "mary had a little lamb")
+(re-seq #"\w+" "mary had a little lamb")
+(defn phone-number
+  "利用正则表达式从一个字符串中抽取除其中包含的电话号码"
+  [string]
+  (re-seq #"(\d{3)[\.-]?(\d{3})[\.-]?(\d{4})" string))
+(defn phone-number
+  "利用正则表达式从一个字符串中抽取除其中包含的电话号码"
+  [string]
+  (re-seq #"(\d{3})[\.-]?(\d{3})[\.-]?(\d{4})" string))
+(doc phone-number)
+(defn phone-numbers
+  "利用正则表达式从一个字符串中抽取除其中包含的电话号码"
+  [string]
+  (re-seq #"(\d{3})[\.-]?(\d{3})[\.-]?(\d{4})" string))
+(phone-numbers " Sunil:617.555.2937, Betty: 508.555.2218")
+(re-seq #"(\S+):(\d+)" " RX pkts:18 err:5 drop:48")
+(take 5 (repeat "x"))
+(repeat 5 "x")
+(concat [1 2] [3 4])
+(concat [:a :b] nil [1 [2 3] 4])
+(concat "abc" "def")
+(time (dorun (map phone-numbers files)))
+(def files (repeat 100
+                   (apply str
+                          (concat (repeat 1000000 \space)
+                                  "Sunil:617.555.2937, Betty: 508.555.2218"))))
+(time (dorun (map phone-numbers files)))
+(time (dorun (pmap phone-numbers files)))
+(def files (repeat 100000
+                   (apply str
+                          (concat (repeat 1000 space)
+                                  "Sunil:617.555.2937, Betty: 508.555.2218"))))
+(def files (repeat 100000
+                   (apply str
+                          (concat (repeat 1000 \space)
+                                  "Sunil:617.555.2937, Betty: 508.555.2218"))))
+(time (dorun (map phone-numbers files)))
+(time (dorun (pmap phone-numbers files)))
+(pmap inc [1 2 3 4 5])
+(time (dorun (map long-running-job (range 4))))
+(defn long-running-job [n]
+  (Thread/sleep 3000)
+  (+ n 10))
+(time (dorun (map long-running-job (range 4))))
+(time (dorun (pmap long-running-job (range 4))))
+(time (doall (pmap long-running-job (range 4))))
+exit

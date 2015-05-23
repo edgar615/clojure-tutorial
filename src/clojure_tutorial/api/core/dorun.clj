@@ -17,6 +17,7 @@
 ;hi
 ;nil
 
+;;彻底实例化一个map所产生的惰性序列
 (dorun (map #(println "hi" %) ["mum" "dad" "sister"]))
 ;hi mum
 ;hi dad
