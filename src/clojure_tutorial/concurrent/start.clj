@@ -124,3 +124,16 @@ d
 
 ;pcalls 接受任意数量无参函数作为参数，返回一个包含它们返回值的惰性序列
 ;pvalues　接受任意数量的表达式
+
+
+;接受表达式作为参数，返回n个future
+(defmacro futures
+  [n & exprs]
+  (vec (for [_ (range n)
+             expr exprs]
+         `(future ~expr))))
+;wait-futures，始终返回nil并且阻塞REPL直到所有的future都实例化
+(defmacro wait-futures
+  [& args]
+  `(doseq [f# (futures ~@args)]
+     @f#))

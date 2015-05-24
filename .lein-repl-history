@@ -134,3 +134,86 @@ d
 (time (dorun (pmap long-running-job (range 4))))
 (time (doall (pmap long-running-job (range 4))))
 exit
+(def sarah (atom {:name "Sarah" :age 25 :wears-glasses? false}))
+(swap! sarah update-in [:age] + 3)
+(swap! sarah (comp #(update-in % [:age] inc)
+                   #(assoc % :wears-glasses? true)))
+;接受表达式作为参数，返回n个future
+(defmacro futures
+  [n & exprs]
+  (vec (for [_ (range n)
+             expr exprs]
+         `(future ~expr))))
+;wait-futures，始终返回nil并且阻塞REPL直到所有的future都实例化
+(defmacro wait-futures
+  [& args]
+  `(doseq [f# (futures ~@args)]
+     @f#))
+(def xs (atom #{1 2 3}))
+(wait-futures 1 (swap! xs (fn [v]
+                            (Thread/sleep 250)
+                            (println "trying 4")
+                            (conj v 4)))
+              (swap! xs (fn [v]
+                          (Thread/sleep 500)
+                          (println "trying 5")
+                          (conj v 5))))
+@xs
+(def x (atom 2000))
+(swap! x #(Thread/sleep %))
+(compare-and-set! xs :wrong "new value")
+(compare-and-set! xs @xs "new value")
+@xs
+(def xs (atom #{1 2}))
+(compare-and-set! xs #{1 2} "new value")
+(def my-atom (atom 0))
+@my-atom
+(swap! my-atom inc)
+@my-atom
+(swap! my-atom (fn [n] (* (+ n n) 2)))
+exit
+(defn echo-watch
+  [key identity old new]
+  (println key old "=>" new))
+(def sarah (atom {:name "Sarah" :age 25}))
+(add-watch sarah :echo echo-watch)
+(swap! sarah update-in [:age] inc)
+(add-watch sarah :echo2 echo-watch)
+(swap! sarah update-in [:age] inc)
+(remove-watch sarah :echo2)
+(swap! sarah update-in [:age] inc)
+(reset! sarah @sarah)
+(def x (atom 10))
+@x
+(reset! x 20)
+@x
+exit 
+(def history (atom ()))
+(defn log->list
+  [dest-atom key source old new]
+  (when (not= old new)
+    (swap! dest-atom conj new)))
+(def sarah (atom {:name "Sarah" :age 25}))
+(add-watch sarah :record (partial log->list history))
+(swap! sarah update-in [:age] inc)
+(swap! sarah identity)
+(swap! sarah assoc :wears-glasses? true)
+(pprint history)
+(swap! sarah update-in [:age] inc)
+(pprint history)
+(pprint @history)
+(identity 4)
+(filter identity [1 2 3 nil 4 false true 1234])
+(def n (atom 1 :validator pos?))
+(swap! n + 500)
+(swap! n - 1000)
+(pos? 1)
+(pos? 0)
+(pos? -1)
+(def sarah (atom {:name "Sarah" :age 25}))
+(set-validator! sarah :age)
+(swap! sarah dissoc :age)
+(set-validator! sarah #(or (:age %)
+                           (throw (IllegalStateException. "People must have ':age'"))))
+(swap! sarah dissoc :age)
+exit
