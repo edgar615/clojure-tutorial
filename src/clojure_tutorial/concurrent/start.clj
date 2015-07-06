@@ -137,3 +137,17 @@ d
   [& args]
   `(doseq [f# (futures ~@args)]
      @f#))
+
+
+
+
+;使用java的并发原语
+;Clojure中所有的无参函数都实现了java.lang.Runnable和java.util.concurrent.Callable这两个接口
+;你可以把无参函数传给任何需要这两个接口对象作为参数的JAVA API
+(.start (Thread. #(println "Running...")))
+
+;locking
+(defn add
+  [some-list value]
+  (locking some-list
+    (.add some-list value)))
