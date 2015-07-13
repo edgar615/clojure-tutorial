@@ -120,3 +120,21 @@
 
 `(1 2 3 '~a 5)
 ;;(1 2 3 (quote 4) 5)
+
+`(1 2 3 (quote (clojure.core/unquote a)) 5)
+;;(1 2 3 (quote 4) 5)
+
+(def other-nums '(4 5 6 7))
+
+`(1 2 3 ~other-nums 9 10)
+;;(1 2 3 (4 5 6 7) 9 10)
+`(1 2 3 ~@other-nums 9 10)
+;;(1 2 3 4 5 6 7 9 10)
+
+
+(defmacro squares
+  [xs]
+  (list 'map '#(* % %) xs))
+
+(squares (range 10))
+;;(0 1 4 9 16 25 36 49 64 81)
