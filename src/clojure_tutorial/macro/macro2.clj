@@ -138,3 +138,63 @@
 
 (squares (range 10))
 ;;(0 1 4 9 16 25 36 49 64 81)
+
+(defmacro squares2
+  [xs]
+  `(map #(* % %) ~xs))
+
+(squares2 (range 10))
+;;(0 1 4 9 16 25 36 49 64 81)
+
+(defmacro squares3
+  [xs]
+  `(map (fn [~'x] (* ~'x ~'x)) ~xs))
+
+(squares3 (range 10))
+;;(0 1 4 9 16 25 36 49 64 81)
+
+
+(defmacro make-adder
+  [x]
+  `(fn [~'y] (+ ~x ~'y)))
+
+(macroexpand-1 '(make-adder 10))
+;;(clojure.core/fn [y] (clojure.core/+ 10 y))
+
+
+;Secret Macro Voodoo
+(defmacro info-about-caller
+  []
+  (pprint {:form &form :env &env})
+  `(println "macro was called!"))
+
+(info-about-caller)
+;;{:form (info-about-caller), :env nil}
+;;macro was called!
+
+(let [foo "bar"] (info-about-caller))
+;;{:form (info-about-caller),
+;;:env {foo #<LocalBinding clojure.lang.Compiler$LocalBinding@3d8d5c99>}}
+;;macro was called!
+
+(let [foo "bar" baz "quux"] (info-about-caller))
+;;{:form (info-about-caller),
+;; :env
+;;       {baz #<LocalBinding clojure.lang.Compiler$LocalBinding@54892e69>,
+;;        foo #<LocalBinding clojure.lang.Compiler$LocalBinding@3b1160b9>}}
+;;macro was called!
+
+;The &env value seems pretty magical: it’s a map of local variables,
+; where the keys are symbols and the values are instances of some class in the Clojure compiler internals
+
+(defmacro inspect-caller-locals []
+  (->> (keys &env)
+       (map (fn [k] [`'~k k]))
+       (into {})))
+
+(inspect-caller-locals)
+;;{}
+
+(let [foo "bar" baz "quux"] (inspect-caller-locals))
+;;{baz "quux", foo "bar"}
+

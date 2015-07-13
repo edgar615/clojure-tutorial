@@ -95,6 +95,43 @@
 `(println ~(keyword (str foo)))
 ;;(clojure.core/println :123)
 
+
+;引述
+(def a 4)
+
+'(1 2 3 a 5)
+;;(1 2 3 a 5)
+(list 1 2 3 a 5)
+;;(1 2 3 4 5)
+'a
+;;a
+
+;语法引述
+(def a 4)
+`(1 2 3 ~a 5)
+;;(1 2 3 4 5)
+`~a
+;;4
+
+'~a
+;;(clojure.core/unquote a)
+`~'a
+;;a
+
+`(1 2 3 '~a 5)
+;;(1 2 3 (quote 4) 5)
+
+`(1 2 3 (quote (clojure.core/unquote a)) 5)
+;;(1 2 3 (quote 4) 5)
+
+(def other-nums '(4 5 6 7))
+
+`(1 2 3 ~other-nums 9 10)
+;;(1 2 3 (4 5 6 7) 9 10)
+`(1 2 3 ~@other-nums 9 10)
+;;(1 2 3 4 5 6 7 9 10)
+
+
 ;有一个列表的形式，然后想把另外一个列表的内容解开加入到第一个列表里面去。
 (let [defs '((def x 123)
               (def y 456))]
@@ -115,6 +152,37 @@
                        (println x))
                   :done))
 ;;(user/do-something (doseq [x (range 5)] (println x)) :done)
+
+
+;宏的例子
+(defmacro squares
+  [xs]
+  (list 'map '#(* % %) xs))
+
+(squares (range 10))
+;;(0 1 4 9 16 25 36 49 64 81)
+
+(defmacro squares2
+  [xs]
+  `(map #(* % %) ~xs))
+
+(squares2 (range 10))
+;;(0 1 4 9 16 25 36 49 64 81)
+
+(defmacro squares3
+  [xs]
+  `(map (fn [~'x] (* ~'x ~'x)) ~xs))
+
+(squares3 (range 10))
+;;(0 1 4 9 16 25 36 49 64 81)
+
+
+(defmacro make-adder
+  [x]
+  `(fn [~'y] (+ ~x ~'y)))
+
+(macroexpand-1 '(make-adder 10))
+;;(clojure.core/fn [y] (clojure.core/+ 10 y))
 
 
 ;什么时候使用宏
