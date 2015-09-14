@@ -173,7 +173,8 @@ matrix
 ;;user.Point
 (Point. 5 5)
 ;;#user.Point{:x 5, :y 5}
-(ns use2)
+(ns use2
+  (:import (taoensso.nippy MyType)))
 (refer 'user)
 x
 ;;"hello"
@@ -212,3 +213,161 @@ Point
          (Point. 5 6)
          (Point. 7 8)])
 ;;(3 5 7)
+
+
+;对一个字段进行更新也只要简单调用assoc就好了，所以其他关系型集合相关的函数keys、get、seq、conj、into等都可以用在记录类型上。
+; 并且更Clojure map一样，记录类型也实现了Java的util.map接口，所有可以把记录类型传给任何需要JavaMap的函数/方法类使用
+
+;虽然在定义的时候指定了记录类型有哪些字段，但是你还是可以在运行时给它添加新的字段：
+(assoc (Point. 3 4) :z 5)
+;;#user.Point{:x 3, :y 4, :z 5}
+
+(let [p (assoc (Point. 3 4) :z 5)]
+  (dissoc p :x))
+;;{:y 4, :z 5}
+;;从记录类型实例去掉一个预定义的字段的话，返回的就不是记录类型了，而是被降级成一个普通的map
+
+(let [p (assoc (Point. 3 4) :z 5)]
+  (dissoc p :z))
+;;#user.Point{:x 3, :y 4}
+;;如果去除的是运行时额外添加的字段，那么返回的仍然是记录类型，而不会发生降级
+
+;这些运行时额外添加的字段是被保存在一个单独的Clojure hashmap里面的，因此它们的语义也是普通map的定义——它们并美柚被添加到底层那个Java类上去
+
+(:z (assoc (Point. 3 4) :z 5))
+;;5
+(.z (assoc (Point. 3 4) :z 5))
+;;IllegalArgumentException No matching field found: z for class user.Point
+
+;元数据支持
+;可以通过meta来获取记录的元数据信息，通过with-meta或vary-meta来设置记录的元数据信息——而不会影响记录的值语义
+(-> (Point. 3 4)
+    (with-meta {:foo :bar})
+    meta)
+;;{:foo :bar}
+
+;可读的表示法
+;可以从记录的一个文本表示读入一个记录实例——跟Clojure的其他字面量一样
+(pr-str (assoc (Point. 3 4) :z [:a :b]))
+;;"#user.Point{:x 3, :y 4, :z [:a :b]}"
+(= (read-string *1)
+   (assoc (Point. 3 4) :z [:a :b]))
+;;true
+
+;附加构造函数
+;除了接受预定义的标准构造函数，记录类型还提供了一个附加的构造函数，这个构造函数接受两个额外的参数：一个包含额外字段的map以及一个包含元数据的map
+(Point. 3 4 {:foo :bar} {:z 5})
+;;#user.Point{:x 3, :y 4, :z 5}
+
+(meta *1)
+;;{:foo :bar}
+
+;这个在语义上跟下面的代码是等价的，但是更高效
+(-> (Point. 3 4)
+    (with-meta {:foo :bar})
+    (assoc :z 5))
+
+;构造函数与工厂函数
+;构造函数通常不应该作为你的公开api的一部分，相反，应该对于你的类型提供一些工厂函数，因为
+;1.工厂函数可能更适合调用者使用，因为由底层deftype或defrecord生成的构造函数通常太底层，包含了一些调用者可能根本不关心的细节在里面
+;2.可以把工厂函数作为普通函数一样传给其他高阶函数，以对生成的记录进行处理。
+;3.可以最大化你的API的稳定性——即使在底层模型发生变化的时候
+
+;deftype和defrecord都会隐式创建一个形如->MyType的工厂函数，它接受的参数跟定义类型时候的字段列表一样：
+(->Point 3 4)
+;;#user.Point{:x 3, :y 4}
+
+;记录类型还隐式生成另外一个工厂函数map-MyType，它接受一个map作为参数，这个map包含了要填充给新MyType实例的信息
+(map->Point {:x 3 :y 4 :z 5})
+;;#user.Point{:x 3, :y 4, :z 5}
+
+;这些对于创建普通类型以及记录类型抖森很有用的，特别是在跟高阶函数一起使用的时候：
+(apply ->Point [5 6])
+;;#user.Point{:x 5, :y 6}
+
+
+(map (partial apply ->Point) [[5 6] [7 8] [9 10]])
+;;(#user.Point{:x 5, :y 6} #user.Point{:x 7, :y 8} #user.Point{:x 9, :y 10})
+
+(map map->Point [{:x 1 :y 2} {:x 5 :y 6 :z 44}])
+;;(#user.Point{:x 1, :y 2} #user.Point{:x 5, :y 6, :z 44})
+
+;对于记录类型，这个map-MyType函数还可以通过静态方法create来访问，这对于Java调用者来说很方便
+(Point/create {:x 3 :y 4 :z 5})
+;;#user.Point{:x 3, :y 4, :z 5}
+
+;虽然提供的这些工厂函数很有用，但是还是会需要编写自己的工厂函数，比如你可以在你的工厂函数里面添加一些校验逻辑等：
+(defn log-point
+  [x]
+  {:pre [(pos? x)]}
+  (Point. x (Math/log x)))
+
+(log-point -42)
+;;AssertionError Assert failed: (pos? x)
+
+(log-point Math/E)
+;;#user.Point{:x 2.718281828459045, :y 1.0}
+
+
+;什么时候使用map，什么时候使用记录类型
+;虽然很多场景都适合使用记录类型，但是通常鼓励先使用map，然后在实在需要的时候在换成记录类型。
+
+;记录类型不是函数
+;普通map和记录类型永远不可能相等
+
+(defrecord Point [x y])
+(= (Point. 3 4) (Point. 3 4))
+;;true
+(= {:x 3 :y 4} (Point. 3 4))
+;;false
+(= (Point. 3 4) {:x 3 :y 4})
+;;false
+
+
+
+;类型
+;deftype是Clojure里面最底层的定义形式，defrecord其实是包装了deftype功能的一个宏。
+;很多由记录类型所提供的方便的特性在deftype所定义的类型里面是没有的
+;它本身就是被设计定义那种最底层的框架类型的，比如定义一种新的数据结构或者引用类型。
+;而相对应来说，普通map以及记录类型则是应该用来表示你的应用级别的数据的
+
+;而这种低级别的类型确实提供了一种在编写底层应用或者库时“有时候”所不能提供的特性：可修改的字段。
+
+;对于由deftype定义的，普通(不可修改)字段的访问只能通过java互操作的语法
+
+(deftype Point [x y])
+(.x (Point. 3 4))
+;;3
+(:x (Point. 3 4))
+;;nil
+
+;deftype美柚实现关系型数据结构的接口，所有那种使用关键字来访问字段内容的函数在这种类型里面是没办法用的。
+;所以我们必须依赖这个事实：这个定义的类型最终会被编译成java类，而所有的不可修改字段都被定义成这个java类型里面的public final字段
+
+;可修改字段则有两种类型：volatile或者非synchronized的。要把一个字段定义成可修改的，可以给它加上元数据^:volatile-mutable活摘^:unsynchronized-mutable
+(deftype MyType [^:volatile-mutable fld])
+
+;我们定义的不可修改字段始终是public的，但是可修改字段则始终是private的，并且只能在定义类型的那个形式的那些内联方法里面使用。
+
+;定义一个实现了IDered接口的deref方法的类型
+(deftype Cat [^:unsynchronized-mutable state]
+  clojure.lang.IDeref
+  (deref [sc]
+    (locking sc
+      (or state
+          (set! state (if (zero? (rand-int 2))
+                :dead
+                :alive))))))
+
+(defn cat
+  "create a new cat...."
+  []
+  (Cat. nil))
+
+(def felix (cat))
+@felix
+;;:dead
+(cat)
+;;#<Cat@137c1eb6: :dead>
+(cat)
+;;#<Cat@5954b330: :alive>
