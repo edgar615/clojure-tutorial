@@ -36,3 +36,8 @@
 
 (type ar)
 ;;[Ljava.lang.Thread;
+
+;; make-array 创建任意大小或维度的新空数组
+(def arr (make-array String 5 5))
+(aget arr 0 0)
+;; nil

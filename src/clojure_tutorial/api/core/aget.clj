@@ -22,3 +22,9 @@
 
 (aget a3 10 10)
 ;;0
+
+;; aget和aset分别提供数组的访问和变更操作
+(let [arr (long-array 10)]
+  (aset arr 0 50)
+  (aget arr 0))
+;; 50

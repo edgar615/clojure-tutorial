@@ -6,6 +6,8 @@
 ;Returns an array with components set to the values in aseq. The array's component type is type if provided, or the type of the first value in aseq if present, or Object.
 ;All values in aseq must be compatible with the component type. Class objects for the primitive types can be obtained using, e.g., Integer/TYPE.
 
+;; into-array 返回集合类提供的第一个值的类型的数组，或者返回指定超类的数组
+
 ;; Array's component type is set to (class 2), cannot add Strings.
 ;; This will result in an IllegalArgumentException
 (into-array [2 "a" "b" 3])                                  ;;IllegalArgumentException array element type mismatch  java.lang.reflect.Array.set (Array.java:-2)

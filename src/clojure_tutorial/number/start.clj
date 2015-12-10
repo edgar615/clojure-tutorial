@@ -143,3 +143,148 @@
 ;; 相等与等值
 ;; 对象相同
 ;; 对象相同，Clojure是用identical?实现的，用来确定两个（或多个）对象完全是同一实例
+(identical? "foot" (str "fo" "ot"))
+;; false
+
+(let [a (range 10)]
+  (identical? a a))
+;; true
+
+;; 一般来说，数字从来不会是identical?的，即使提供字面量来比较
+(identical? 5/4 (+ 3/4 1/2))
+;; false
+(identical? 5.4321 5.4321)
+;; false
+(identical? 2600 2600)
+;; false
+
+;; 例外的是，JVM提供有限范围的fixnum，fixnum是封装的整数值的池子，总是优先使用池子里的数值而不是分配新的整数
+;; oracle jvm的fixnum范围是-127 ~ 127，因而只有操作的返回结果是这个范围内的整数时，它与等值整数比较identical?才会成立
+(identical? 127 (dec 128))
+;; true
+(identical? 128 (dec 129))
+;; false
+
+;; 引用相等
+;; Clojure中的=谓词采用了java的引用相等语义，由java.Lang.Object.equals定义
+(= {:a 1 :b ["hi"]}
+   (into (sorted-map) [[:b ["hi"]] [:a 1]])
+   (doto (java.util.HashMap.)
+     (.put :a 1)
+     (.put :b ["hi"])))
+;; true
+
+;; 不同类型的集合类互相间从不=
+;; 同样的机制也适用于数字相等，=只会在比较同类的数字才会为真，即使这些数字所表示的数值是等值的
+(= 1 1N (Integer. 1) (Short. (short 1)) (Byte. (byte 1)))
+;; true
+(= 1.25 (Float. 1.25))
+;; true
+
+;; 不过不同类的等值数字的比较，=永远不会返回真
+(= 1 1.0)
+;; false
+(= 1N 1M)
+;; false
+(= 1.25 5/4)
+;; false
+
+;; 数字等值==
+;; ==谓词实现了数字等值
+(== 0.125 0.125M 1/8)
+;; true
+(== 4 4N 4.0 4.0M)
+;; true
+
+;; ==要求所有的参数都是数字，否则会抛出异常
+;; 扩展
+(defn eqiv?
+  "Same as '=='"
+  [& args]
+  (and (every? number? args)
+       (apply == args)))
+(eqiv? "foo" 1)
+;; false
+(eqiv? 4 4N 4.0 4.0M)
+;; true
+
+;; Clojure的集合类对数字键和成员归属使用它的数字等值定义来确定
+(into #{} [1 1N (Integer. 1) (Short. (short 1))])
+;; #{1}
+(into {}
+      [[1 :long]
+       [1N :bitint]
+       [(Integer. 1) :integer]])
+;; {1 :integer}
+
+;; 浮点数的操作有时可能会产生”错误的“结果
+(== 1.1 (float 1.1))
+;; false
+
+(double (float 1.1))
+;; 1.100000023841858
+;; 这一问题的根源在于IEEE浮点数规范
+
+;; 优化数字的效率
+(defn foo [a] 0)
+(seq (.getDeclaredMethods (class foo)))
+;; (#<Method public java.lang.Object user$foo.invoke(java.lang.Object)>)
+(defn foo [^Double a] 0)
+(seq (.getDeclaredMethods (class foo)))
+;; (#<Method public java.lang.Object user$foo.invoke(java.lang.Object)>)
+
+;; 使用原始类型
+(defn round ^long [^double a] (Math/round a))
+(seq (.getDeclaredMethods (class round)))
+;; (#<Method public final long user$round.invokePrim(double)>
+;; #<Method public java.lang.Object user$round.invoke(java.lang.Object)>)
+
+;; 类型错误与警告
+;; TODO
+
+
+;; 原始类型数组的机制
+;; into-array 返回集合类提供的第一个值的类型的数组，或者返回指定超类的数组
+;; to-array 返回对象的数组
+(into-array ["a" "b" "c"])
+;; #<String[] [Ljava.lang.String;@1e3b12b3>
+(into-array CharSequence ["a" "b" "c"])
+;; #<CharSequence[] [Ljava.lang.CharSequence;@6db7fa8e>
+
+(into-array Long/TYPE (range 5))
+;; #<long[] [J@6b548410>
+
+;; 用于创建原始类型的数组或引用数组
+;; boolean-array byte-array short-array char-array int-array long-array float-array double-array object-array
+(long-array 10)
+(long-array (range 10))
+
+(seq (long-array 20 (range 10)))
+;; (0 1 2 3 4 5 6 7 8 9 0 0 0 0 0 0 0 0 0 0)
+
+;; make-array 创建任意大小或维度的新空数组
+(def arr (make-array String 5 5))
+(aget arr 0 0)
+;; nil
+
+;; aget和aset分别提供数组的访问和变更操作
+(let [arr (long-array 10)]
+  (aset arr 0 50)
+  (aget arr 0))
+;; 50
+
+;; map和reduce应用与数组时，会引起对原始类型值的自动封装
+;; amap areduce专门用来操作数组同时避免自动封装
+(let [a (int-array (range 10))]
+  (amap a i res
+        (inc (aget a i))))
+(seq (let [a (int-array (range 10))]
+  (amap a i res
+        (inc (aget a i)))))
+;; amap有4个参数：源数组、给下标命名的名称、给结果数组命名的名称（初始化为源数组的拷贝），一个表达式
+
+;; areduce
+(let [a (int-array (range 10))]
+  (areduce a i sum 0
+           (+ sum (aget a i))))
+;; 45
