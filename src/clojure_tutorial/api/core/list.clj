@@ -1,4 +1,4 @@
-(ns clojure-tutorial.api.core.list)
+;; (ns clojure-tutorial.api.core.list)
 
 ;list
 ;(list & items)

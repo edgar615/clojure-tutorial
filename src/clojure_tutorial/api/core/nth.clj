@@ -14,3 +14,6 @@
 (nth [:a :b :c] -1 "not-found")                             ;;"not-found"
 
 (nth 42 0)                                                  ;;UnsupportedOperationException nth not supported on this type: Long
+
+(nth "Hello World!" 0)
+;; \H

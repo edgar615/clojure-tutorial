@@ -15,3 +15,9 @@
 (and '() :x)                                                ;;:x
 (and 0 1)                                                   ;;1
 (and 1 0)                                                   ;;0
+
+(and :free_wifi :hot_coffee)
+;; :hot_coffee
+
+(and :feelin_super_cool nil false)
+;; nil
