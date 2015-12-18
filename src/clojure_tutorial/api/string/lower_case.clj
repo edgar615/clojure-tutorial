@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.string.lower-case)
-
 ;lower-case
 ;(lower-case s)
 
