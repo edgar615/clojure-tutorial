@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.core.reduce)
-
 ;reduce
 ;    (reduce f coll)
 ;(reduce f val coll)
@@ -19,4 +17,22 @@
   (fn [m v]
     (assoc m v (* v v)))
   {}
-  [1 2 3 4])                                                ;;{4 16, 3 9, 2 4, 1 1}
+  [1 2 3 4])
+;; => {4 16, 3 9, 2 4, 1 1}
+
+(reduce
+ (fn [new-map [key val]]
+   (assoc new-map key (inc val)))
+ {}
+ {:max 30 :min 10})
+;; => {:min 11, :max 31}
+
+(reduce
+ (fn [new-map [key val]]
+   (if (> val 4)
+     (assoc new-map key val)
+     new-map))
+ {}
+ {:human 4.1
+         :critter 3.9})
+;; => {:human 4.1}

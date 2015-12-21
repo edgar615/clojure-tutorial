@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.core.into)
-
 ;into
 ;(into to from)
 
@@ -16,3 +14,6 @@
 
 (into [] (set [:a :a]))
 ;; => [:a]
+
+(into {} (seq {:a 1 :b 2}))
+;; => {:a 1, :b 2}

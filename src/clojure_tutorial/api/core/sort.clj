@@ -1,8 +1,6 @@
-(ns clojure-tutorial.api.core.sort)
-
-;sort
-;    (sort coll)
-; (sort comp coll)
+;; sort
+;; (sort coll)
+;; (sort comp coll)
 
 ;Returns a sorted sequence of the items in coll. If no comparator is supplied, uses compare.
 ; comparator must implement java.util.Comparator.  If coll is a Java array, it will be modified.
@@ -15,3 +13,7 @@
 (sort > (vals {:foo 5, :bar 2, :baz 10}))                   ;;(10 5 2)
 
 (sort #(compare (first %1) (first %2)) {:b 1 :c 3 :a  2})   ;;([:a 2] [:b 1] [:c 3])
+
+;; liked this
+(sort-by first {:b 1 :c 3 :a  2})
+;; ([:a 2] [:b 1] [:c 3])

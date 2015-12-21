@@ -32,3 +32,9 @@
 ;10
 (count rands)
 ;10
+
+(defn even-number
+  ([] (even-number 0))
+  ([x] (cons x (lazy-seq (even-number (+ x 2))))))
+(take 10 (even-number))
+;; => (0 2 4 6 8 10 12 14 16 18)
