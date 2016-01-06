@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.core.apply)
-
 ;apply
 ;(apply f args)
 ;(apply f x args)
@@ -31,3 +29,9 @@
 (+ 1 2 3 4)
 
 (map #(apply max %) [[1 2 3][4 5 6][7 8 9]])                ;;(3 6 9)
+
+(defn my-into
+  [target additions]
+  (apply conj target additions))
+(my-into [1] [2 3 4])
+;; => [1 2 3 4]

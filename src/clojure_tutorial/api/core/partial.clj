@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.core.partial)
-
 ;partial
 ;(partial f)
 ;(partial f arg1)
@@ -26,3 +24,20 @@
 
 (def only-strings (partial filter string?))
 (only-strings ["a" 5 "b" 6])                                ;;("a" "b")
+
+
+(defn my-patial
+  [partial-fn & args]
+  (fn [& more-args]
+    (apply partial-fn (into args more-args))))
+((my-patial + 10) 10)
+;; => 20
+
+(defn lousy-logger
+  [log-level message]
+  (condp = log-level
+    :warn (clojure.string/lower-case message)
+    :emergency (clojure.string/upper-case message)))
+(def warn (partial lousy-logger :warn))
+(warn "Hello World")
+;; => "hello world"

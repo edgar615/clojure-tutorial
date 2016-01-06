@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.core.conj)
-
 ;conj
 ;(conj coll x)
 ;(conj coll x & xs)
@@ -37,3 +35,18 @@
 (conj '(1 2 3) 4)                                           ;;(4 1 2 3)
 ;如果conj不把元素添加到最前面的话，比如添加到列表的最后面，那么就需要遍历这个列表，这个对于很大的列表来说是很耗时间的操作。
 ;所以conj保证的并不是它把元素添加到所有集合的最前面或者最后面，它保证的是对于所有的集合它都能高效地插入
+
+
+;; conj和into的区别
+(conj [1] [2])
+;; => [1 [2]]
+(conj [1] 2)
+;; => [0 1]
+(into [0] [1])
+;; => [0 1]
+
+(defn my-conj
+  [target & rest]
+  (into target rest))
+(my-conj [1] 2 3 4 5)
+;; => [1 2 3 4 5]
