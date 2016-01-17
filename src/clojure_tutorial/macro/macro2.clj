@@ -1,5 +1,3 @@
-(ns clojure-tutorial.macro.macro2)
-
 (read-string "(+ 1 2 3 4 5)")
 ;;(+ 1 2 3 4 5)
 (class (read-string "(+ 1 2 3 4 5)"))
