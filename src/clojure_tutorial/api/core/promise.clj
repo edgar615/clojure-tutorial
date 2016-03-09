@@ -1,5 +1,3 @@
-(ns clojure-tutorial.api.core.promise)
-
 ;promise
 ;(promise)
 
@@ -28,3 +26,9 @@
 ;超时值
 (def p2 (promise))
 (deref p2 3000 :ignore)                                     ;;:ignore
+
+(def my-promise (promise))
+(deliver my-promise 100)
+(realized? my-promise)
+@my-promise
+;; => 100

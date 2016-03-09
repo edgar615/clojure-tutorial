@@ -217,3 +217,46 @@ exit
                            (throw (IllegalStateException. "People must have ':age'"))))
 (swap! sarah dissoc :age)
 exit
+(require '[clojure.core.async :as async :refer :all])
+(def c (chan 1))
+(go-loop [data (<! c)]
+         (println "Waited for ==> " data)
+         (println "No recur. Won't print again"))
+(put! c "Example Async Data")
+(go-loop []
+         (let [data (<! c)]
+         (println "Waited for ==> " data))
+         (recur))
+(put! c "Example Async Data")
+(let [c (chan 1 (filter pos?))]
+ 
+         (go-loop []
+           (let [nums (<! c)]
+             (println nums))
+           (recur))
+   
+         (doseq [n (range -10 10)]
+           (put! c n)))
+(let [c (chan 1 (filter pos?))]
+ 
+         (go-loop []
+           (let [nums (<! c)]
+             (println nums))
+           (recur))
+   
+         (doseq [n (range -10 10)]
+           (put! c n)))
+(>!! c "Blocking - not in go-block")
+(<!! c)
+(def c (chan 1))
+(>!! c "Blocking - not in go-block")
+(<!! c)
+(let [c (chan 1)]
+  (go (>! c 1)
+      (println "Got => " (<! c))))
+(def c (chan 1))
+(take! c
+       (fn [x]
+         (println "Clojure callback value " x)))
+(put! c "XYZ")
+exit
